@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>news waterfall</title>
+  <link rel="stylesheet" href="https://at.alicdn.com/t/font_1310238_q58n1opcu2.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <style>
+    html, body, ul, li, div, p {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    ul li {
+      list-style: none;
+    }
+
+    .clearfix::after {
+      content: '';
+      display: block;
+      clear: both;
+    }
+
+    .wrap {
+      width: 700px;
+      margin: 0 auto;
+    }
+
+    .news-ct {
+      position: relative;
+    }
+
+    .news-ct li {
+      position: absolute;
+      margin: 12px;
+      padding: 5px;
+      width: 200px;
+      border: 1px solid #ccc;
+      box-shadow: 2px 2px 2px #E8E8E8, -2px -2px 2px #E8E8E8;
+    }
+
+    .news-ct img {
+      margin: 7px;
+      width: 176px;
+    }
+
+    .news-ct h2 {
+      padding: 5px 0;
+      color: #000;
+      font-size: 16px;
+      font-weight: bold;
+      border-bottom: 1px solid #E8E8E8;
+    }
+
+    .news-ct p {
+      padding: 3px;
+      color: #333;
+    }
+
+    .loading {
+      visibility: hidden;
+      text-align: center;
+    }
+
+    .loading span {
+      display: inline-block;
+      animation: 1s rotate linear infinite;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="waterfall">
+      <ul class="news-ct clearfix">
+        <!-- <li>
+          <a href="#"><img src="樱花.jpg" alt=""></a>
+          <h2>广东工业大学樱花美如画</h2>
+          <p>3月的广东工业大学，教学楼、图书馆周围和校道上的樱花盛开了，风景美如画</p>
+        </li> -->
+      </ul>
+      <div class="loading"><span class="iconfont icon-loading"></span></div>
+    </div>
+  </div>
+  
+
+  <script>
+    // var perPageCount = 10,
+    //     curPage = 1,
+    //     colHeightArray = [];
+
+    // function getData(callback) {
+    //   $.ajax({
+    //     url: 'https://photo.sina.cn/aj/v2/index?cate=military',
+    //     type: 'get',
+    //     dataType: 'jsonp',
+    //     jsonp: "callback",
+    //     data: {
+    //       pagesize: perPageCount,
+    //       page: curPage
+    //     }
+    //   }).done(function(ret) {
+    //     if (ret.code) {
+    //       console.log(ret)
+    //       callback && callback(ret.data)
+    //       $('.loading').css({ visibility: 'hidden' })
+    //       curPage ++
+    //     }
+    //   }).fail(function() {
+    //     console.log("error ...")
+    //   }).always(function() {
+    //     bind()
+    //   })
+    // }
+
+    // function renderData(data) {
+    //   data.forEach(function(item) {
+    //     var $node = getNodes(item)
+    //     $('.news-ct').append($node)
+    //   })
+    // }
+
+    // function getNodes(item) {
+    //   var tpl = '<li>'
+    //       tpl += '<a href="'+item.url+'"><img src="'+item.thumb+'" alt=""></a>'
+    //       tpl += '<h2>'+item.stitle+'</h2>'
+    //       tpl += '<p>'+item.title+'</p>'
+    //       tpl += '</li>'
+    //   var $node = $(tpl)
+    //   return $node
+    // }
+
+    // var imgWidth = 0,
+    //     colCount = 0,
+    //     clock = null;
+
+    // function isEnd($view, $content) {
+    //   return $view.height() + $view.scrollTop() + 30 >= $content.height()
+    // }
+
+    // function bind() {
+      
+    // }
+    
+
+    // getData(renderData)
+
+    var waterfall = {
+      init: function() {
+        this.perPageCount = 10,
+        this.curPage = 1,
+        this.colHeightArray = [];
+        this.imgWidth = 0,
+        this.colCount = 0,
+        this.clock = null;
+        var _this = this
+        this.getData(function(data) {
+          _this.renderData(data)
+        })
+        console.log(this)
+      },
+      bind: function() {
+        var _this = this
+
+        $(window).on('scroll', function() {
+          if (_this.clock) clearTimeout(_this.clock)
+          console.log("scroll")
+          _this.clock = setTimeout(function() {
+            if (_this.isEnd($(window), $('.news-ct'))) {
+              $('.loading').css({ visibility: 'visible' })
+              console.log('isEnd')
+              _this.getData(function(data) {
+                _this.renderData(data)
+              })
+            }
+          }, 200);
+        })
+
+        $('.news-ct img').on('load', function() {
+          
+          if (_this.colHeightArray.length <= 1) {
+            _this.imgWidth = $('.news-ct li').outerWidth(true)
+            _this.colCount = Math.floor($('.news-ct').width() / _this.imgWidth) 
+            for (var i = 0; i < _this.colCount; i++) {
+              _this.colHeightArray[i] = 0
+            }
+          }
+
+          var minValue = _this.colHeightArray[0]
+          var minIndex = 0
+
+          for (var i = 0; i < _this.colCount; i++) {
+            if (_this.colHeightArray[i] < minValue) {
+              minValue = _this.colHeightArray[i]
+              minIndex = i
+            }
+          }
+
+          var width = $(this).parents('li').outerWidth(true)
+          $(this).parents('li').css({
+            left: minIndex * width,
+            top: minValue
+          })
+
+          _this.colHeightArray[minIndex] += $(this).parents('li').outerHeight(true)
+          $('.news-ct').height(Math.max.apply(null, _this.colHeightArray))
+        })
+      },
+      getData: function(callback) {
+        var _this = this
+        console.log(this)
+        $.ajax({
+          url: 'https://photo.sina.cn/aj/v2/index?cate=military',
+          type: 'get',
+          dataType: 'jsonp',
+          jsonp: "callback",
+          data: {
+            pagesize: _this.perPageCount,
+            page: _this.curPage
+          }
+        }).done(function(ret) {
+          if (ret.code) {
+            console.log(ret)
+            callback && callback(ret)
+            $('.loading').css({ visibility: 'hidden' })
+            _this.curPage ++
+          }
+        }).fail(function() {
+          console.log("error ...")
+        }).always(function() {
+          _this.bind()
+        })
+      },
+      renderData: function(ret) {
+        var _this = this
+
+        ret.data.forEach(function(item) {
+          var $node = _this.getNodes(item)
+          $('.news-ct').append($node)
+        })
+      },
+      getNodes: function(item) {
+        var tpl = '<li>'
+            tpl += '<a href="'+item.url+'"><img src="'+item.thumb+'" alt=""></a>'
+            tpl += '<h2>'+item.stitle+'</h2>'
+            tpl += '<p>'+item.title+'</p>'
+            tpl += '</li>'
+        var $node = $(tpl)
+        return $node
+      },
+      isEnd: function($view, $content) {
+        return $view.height() + $view.scrollTop() + 30 >= $content.height()
+      }
+    }
+
+    waterfall.init()
+  </script>
+</body>
+</html>
